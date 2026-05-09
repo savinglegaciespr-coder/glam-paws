@@ -137,8 +137,8 @@ export default function GlamPawsDashboard() {
           <p style={{ color: C.pinkLight, fontSize: 12, margin: "2px 0 0", fontStyle: "italic" }}>Panel Financiero · Pet Lovers Sitting</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
-          <span style={{ ...badge("w2"), fontSize: 12, padding: "5px 12px" }}>{statusLabel}</span>
-          <button onClick={() => setShowReset(true)} style={{ background: "rgba(255,255,255,0.15)", color: C.white, border: "1px solid rgba(255,255,255,0.3)", borderRadius: 10, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(4px)" }}>🔄 Reset</button>
+          <span style={{ display: "inline-block", padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: netProfit >= 0 ? "#dcfce7" : "#fee2e2", color: C.purple }}>{statusLabel}</span>
+          <button onClick={() => setShowReset(true)} style={{ background: "rgba(255,255,255,0.25)", color: C.danger, border: "none", borderRadius: 10, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>🔄 Reset</button>
         </div>
       </div>
 
