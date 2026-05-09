@@ -259,7 +259,7 @@ export default function GlamPawsDashboard() {
                 {SERVICES.map(k => (
                   <div key={k} style={{ marginBottom: 12 }}>
                     <label style={lbl}>{SERVICE_LABELS[k]}</label>
-                    <input style={inp} type="number" placeholder="/bin/sh.00" value={revenues[k]} onChange={e => setRevenues(r => ({ ...r, [k]: e.target.value }))} />
+                    <input style={inp} type="number" placeholder="$0.00" value={revenues[k]} onChange={e => setRevenues(r => ({ ...r, [k]: e.target.value }))} />
                   </div>
                 ))}
                 <div style={{ background: C.purplePale, borderRadius: 12, padding: "14px 16px", marginTop: 8 }}>
@@ -272,7 +272,7 @@ export default function GlamPawsDashboard() {
                 {Object.keys(expenses).map(k => (
                   <div key={k} style={{ marginBottom: 12 }}>
                     <label style={lbl}>{k.charAt(0).toUpperCase() + k.slice(1)}</label>
-                    <input style={inp} type="number" placeholder="/bin/sh.00" value={expenses[k]} onChange={e => setExpenses(ex => ({ ...ex, [k]: e.target.value }))} />
+                    <input style={inp} type="number" placeholder="$0.00" value={expenses[k]} onChange={e => setExpenses(ex => ({ ...ex, [k]: e.target.value }))} />
                   </div>
                 ))}
                 <div style={{ background: `${C.pink}33`, borderRadius: 12, padding: "14px 16px", marginTop: 8 }}>
@@ -317,7 +317,7 @@ export default function GlamPawsDashboard() {
                         <option value="w2">W-2 Empleado</option>
                       </select>
                     </div>
-                    <div><label style={lbl}>Salario/mes</label><input style={inp} type="number" placeholder="/bin/sh.00" value={emp.salary} onChange={e => setEmp(emp.id, "salary", e.target.value)} /></div>
+                    <div><label style={lbl}>Salario/mes</label><input style={inp} type="number" placeholder="$0.00" value={emp.salary} onChange={e => setEmp(emp.id, "salary", e.target.value)} /></div>
                     <div><label style={lbl}>Hrs/semana</label><input style={inp} type="number" placeholder="40" value={emp.hours} onChange={e => setEmp(emp.id, "hours", e.target.value)} /></div>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
