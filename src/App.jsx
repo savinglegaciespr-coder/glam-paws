@@ -1,5 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBE9GVwxiTtYBvj-HYmce2qW6y0lEXHG24",
+  authDomain: "glam-paws-panel.firebaseapp.com",
+  projectId: "glam-paws-panel",
+  storageBucket: "glam-paws-panel.firebasestorage.app",
+  messagingSenderId: "761583487749",
+  appId: "1:761583487749:web:eeb49f755b6074f508056c"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
 
 const LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAB4AHgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACioJr21t8+dcRRkYyGcA89OKY+pWUc8sD3MayRIZHDHG1QMkn8OaLBYtUVFHdW8shjjnjdwoYqrgkA9Dj0qWgAooooAKKKKACiiigAooooAKKKqXWo2tpKkU0yxu4+XcOBzgZPbJOPegBbu+S0KJseSWQMURBknAySfQdOfcVz6NqviBZAJRBbGF03R7gPMIBHXB4yQe3y9OeLMFlNHpkjeJ5ba7lFw8kRiUhVU9EAPJ7jBzx1zVS91q4uiVjJhi9FPJ+pptqJvSoyn8P3k0+hWEMsnn6gY0cxvsG0MGUAZ9Og9KdcW+g3V3JcTXMjPIoRwGZQwGOuB3wKxkR5ZAiAs7HgetWW0y8WMyGBgoXcfUVPPI6fq8FpKWpp2ulWCvJLY3rPM0BiXzJSdvCqCMYIOFAz1qur6xoccSzG3ktQAhdnYKnQAsxzgEsST22gcZ4yeQfQ1pWWs3FqQshM0X91jyPoaaqdyZ4VrWLubumaxbamgCHbOEDPEc/Ln0OOeo/MZxmtCsG7hlm0uW58NLaQ6hI6EvIgGRvBYNwTyM/nWlaX8M0ptWmie8iQecsedobjOCfTI46jIz1FNrqjjlGxcooopEhRRRQAUUUUARzzx21vJPKwSONS7MegA5JrmdPjOqXlxqt+6m2j/1cYB28YIOdxz0GQMqTgjnNXPFMsn2BbVFfE+QTGX3EgZCjZzlumTx65zUWrutnYW+nxAL8oZ8KFzj2HHJ/lVX5Y3NaUOZpLqZt/fPf3BkbIQcIvoP8aWDTLy4QPHCdp6EkDNLpln9tuwhH7tfmf6eldaFEaBY1AA4AHAFZJXOytW9laEDnry8g0G3hj8sefINpkCdSRxUP9ualHpZvri1ePCkrHs5b5gF/Oti7sNP3SXl6y4jPmNJLJtVAOR6AAe9WLi4ghspbmVg1ukZlZlXflQM5AHX8KaT6nN7WFldXfUoQ29vrCrdTRFJB8rqr8E1DqGhhVMtoOg5j5JP0rXt5o7m3jnt/wDVzIJFJXaSCMjIPT8ag1LV7HSIVkvbgRlztjQAs8h9FUcsfoKai3oTGtNP3fuOcsb2SwuRIuSvR09R/jWhqFsY72DVbIlYynyx20fzzSE5Ctgcg+/AwSexGFq+oXklwLq38P3yQyjOZnjjZiO4UnI/HFbPhPVk1OxnhieSNlLDDLh4m6MCD3BwfTmqScTprJTgqi3OlgkM0EchjeMuoYo4wV9j71JWF4du5XiktrmSR5VZmR3Jbeu4jO49cHjgAegxW7Q1ZnC1ZhRRRSEFFFFAHNXrJc+L4Lfaysiq28ouflO/5SSCuc4OM5wRxjNVNYl83VJvRSFH4Cta7t47DUX1i81BIbSIEkSEjblQuM7sY4BxjOe9chea3BJfySGC8jglmws8sBRMk8ZzyM+4pyTaVjtwlua/kdX4dVRbzt/FuA/DFbQORkVzWiX0dtKLZlZpLiUIgH+6xJPsAtdKOBUrYxxKaqsiuIILmB4LiKOWGUbHjkUMrA9iD1pd0cTJGCidkXIHTsBTioPX1B/GuM1vw14e1rxXY6/eXNz9p08gCESkISrZU468H0696Ziot7I628e7FpL9hSJ7ngRiZiEye5xzgdcd8YrFtrFdL1yxTd9rv7tJXuryYfvCqAcL2RdzL8o4x6nmtu2uUu7cTRdDng9R9azIT9o8Y3LZyLSxjj/4FI7Mf0RaqL0ZSurpi+IUX7JE+PmEmB9CP/rVy/hiTy/FuoSJ/q2liib3fy/m/mtanjDWxbxQ2dqEnupj+5jB6vzyf9kDkms7QbP7A9pAHMknmh5JD1dy2Wb8TU7Jvud9GL9jZ+ZvRPHb+Lmih/diTIkWO22qxK7hufdknvwAPmPfmukqmunoNRkvHkkZjjau9gq4GOgOD+Iq5Tbuec3cKKKKQgqOaaO3gknmcJFGpd3Y8KAMkmpKw/Eg+0pp+l9VvrtY5R6xqDIw/EJj8aaV2NK7ItNs31m4j1rUozszusbVxxCvZ2H/AD0I5/2QcDnOcHxjBg3cAHzXLIie5Yj+WCfwrvxXG+PGt9Ot01iWQtJEjRQw8fM5BwQO5/kM+9PVtWOjDztU9TLjunh8Q2zR4PkwvKc/7RCj9N1dhHrlk65ZmQ8cEV5/a3Hkvf3t23MSxQuVHVlQFgB6lnxio9O1i4vLy6M8cNvaW0e523buSe7dOMHOOM/Slyytp0O2pRhU1Z3l7r0aqyWoLN0DnoP8a59mLMWJ5Jya5y41f7UttqEM7w6dFcRqzYx5hOd2fYDAx3J9qtWV9qksvlz2DIZJQ6uwwkcJAOCe79sep9KThK12OnTjTVom5DcTW5JhkZCRg7TWKviOWC41GQO895dXbJFBEfnkCKE59FGDz0qXUV1RpV+x3Fvb23lkyyOhZ1I5yo6dPWq3huwit9IiulXF3dR+ZJMwyzFskZ/McU42UbstxTexThvfseojzkN3qly4gLqQIouhMa98L1JA69a6Ww1CCLXgk8qJDCYsseSZHJCrgevH51iW3h97aGFlvP8ATI33GcxBhjBGApP+0Wz6nJroNL8GWd1aPcqWivQ6tBdt87CRW3byDwxzx9MjgVT5GzOrLlg7k8/jG31C5i09Zn0//TJYLqVjjylj3YG7GFZ9vHfGe+K6PSNU/teB7qO3kjtS2IJJODMv98L1CntnkjmuL1vQtRvXg8LwQXL2O3z57x1CpJM7lmdj/s8kIOpIzwK9ERdiBRngY5pz5UlY82fKloLRRRWZmFYXiIS29xpeqRwSzx2VwWmSJSzCN0ZCwA5OCQcDtmt2imnZjTszn28Ti7Hl6LYXV9MeAzRNDEnuzuB+QBPtXMapJZz6hBbXt42q6lLIPtYsomlW2gU7jGirkruYKpJ5POewrd1C5XVjeyXV01roFizJOyMVa5dfvDcOQgPy4HLHI6dbfhnTPs0Ml/Jaray3IAjtlUKLeEZ2R4Hfks3ux9K0Voq5omo6nBNpyajd3cP2yVbZLoz+UI2hnDNyA4YcYGcY69c8Ve/sez85XCMEUIBCG/d/J90le5FdjquqaTFqUenXa5lnTLShR+7AyV3N1H8RHpgk4FUL3Rbi2y8QM0XUFRyPqKzm5dNjupV4yVpaMyIYIoIVhijVI1+6oHA71JR0OO9FZHSZ+uTGDQb+QHDCBgPqRgfzq5bxCC1hhHSONU/IAUTwRXMLQzRiSNsZU9+c/wBK1rLRri6IeUGGLqWYcn6CnfSxMpxhrJlewspL64Ea5Cjl2/uitQazJDrcWmWVqJbdCsTkBgUPO4k4wMDacHGd2QTVWS8effYaMjLbxFTPKmPNkR8gPFnhgDyW6HBAzWnoGgW+iW7BI4hPJjzHjXGQOgGedoycAk4zjNaKKitTzq1XneuxsUUUUjmCiiigAooooAwbbwtBDeeZLd3E9rHO9xb2kmPLikZixbgZbBJIznGeK3qKKbbe4229yhqGkWmoK5kjVZ2iaITqo3qrDBwfoT+dY2qRatoyibSEjFhaw4Fvy7SsSckjBJx8pzkfxda6iimpWBSsc0mqLNHcyalp8DR21ukzzRHJJYZChT0OPc9RzRc3Wh2l3LDLZy4iba8oUlAwUMRnPZTuPHQH0xXQzQRXETxTRJJHIMOjqCGHuO9Vo9H06KbzUsoFfy/K3BB93GMflx9KPd6otVGtmc1J4mgg81dM0kGRVjZC3V1cgAgAEkcjvVhINU8QWd3b3qNApaOe2mXKhT1CFcAnbxknqfTHHSR2ltCytFbxIyoIwVQAhR0H09qmp8yWyE5lHTtMh06BUU+ZIAcyMBkknLY9AW5wOKvUUVF7kBRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB//9k=";
 
@@ -30,10 +44,11 @@ const SERVICE_LABELS = {
   pet_taxi: "🚗 Pet Taxi",
 };
 
-const INIT_REVENUES = { grooming: "", daycare: "", hotel: "", pet_taxi: "" };
-const INIT_EXPENSES = { renta: "", electricidad: "", agua: "", internet: "", seguro: "", suministros: "", marketing: "", otros: "" };
-const EMPTY_EMPLOYEE = () => ({ id: Date.now() + Math.random(), name: "", role: "", type: "1099", salary: "", hours: 40 });
-const INIT_EMPLOYEES = Array.from({ length: 6 }, EMPTY_EMPLOYEE);
+const INIT_DATA = {
+  revenues: { grooming: "", daycare: "", hotel: "", pet_taxi: "" },
+  expenses: { renta: "", electricidad: "", agua: "", internet: "", seguro: "", suministros: "", marketing: "", otros: "" },
+  employees: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, name: "", role: "", type: "1099", salary: "", hours: 40 })),
+};
 
 const PATRONAL_RATE = 0.172;
 const currency = (n) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n || 0);
@@ -54,19 +69,76 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function GlamPawsDashboard() {
   const [tab, setTab] = useState(0);
-  const [revenues, setRevenues] = useState(INIT_REVENUES);
-  const [expenses, setExpenses] = useState(INIT_EXPENSES);
-  const [employees, setEmployees] = useState(INIT_EMPLOYEES);
+  const [revenues, setRevenuesState] = useState(INIT_DATA.revenues);
+  const [expenses, setExpensesState] = useState(INIT_DATA.expenses);
+  const [employees, setEmployeesState] = useState(INIT_DATA.employees);
   const [showReset, setShowReset] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const handleReset = () => {
-    setRevenues(INIT_REVENUES);
-    setExpenses(INIT_EXPENSES);
-    setEmployees(Array.from({ length: 6 }, EMPTY_EMPLOYEE));
+  // ── Firebase: cargar datos al iniciar ──────────────────────────────────────
+  useEffect(() => {
+    const ref = doc(db, "negocios", "glam-paws");
+    const unsub = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.revenues)  setRevenuesState(d.revenues);
+        if (d.expenses)  setExpensesState(d.expenses);
+        if (d.employees) setEmployeesState(Array.isArray(d.employees) ? d.employees : INIT_DATA.employees);
+      }
+      setLoaded(true);
+    }, (err) => { console.error("Firebase:", err); setLoaded(true); });
+    return () => unsub();
+  }, []);
+
+  // ── Firebase: guardar datos ────────────────────────────────────────────────
+  const saveToFirebase = async (data) => {
+    setSyncing(true);
+    try {
+      await setDoc(doc(db, "negocios", "glam-paws"), data);
+    } catch (e) { console.error(e); }
+    setTimeout(() => setSyncing(false), 1000);
+  };
+
+  const setRevenues = (fn) => {
+    setRevenuesState(prev => {
+      const next = typeof fn === "function" ? fn(prev) : fn;
+      saveToFirebase({ revenues: next, expenses, employees });
+      return next;
+    });
+  };
+
+  const setExpenses = (fn) => {
+    setExpensesState(prev => {
+      const next = typeof fn === "function" ? fn(prev) : fn;
+      saveToFirebase({ revenues, expenses: next, employees });
+      return next;
+    });
+  };
+
+  const setEmployees = (fn) => {
+    setEmployeesState(prev => {
+      const next = typeof fn === "function" ? fn(prev) : fn;
+      saveToFirebase({ revenues, expenses, employees: next });
+      return next;
+    });
+  };
+
+  const handleReset = async () => {
+    const fresh = {
+      revenues:  INIT_DATA.revenues,
+      expenses:  INIT_DATA.expenses,
+      employees: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, name: "", role: "", type: "1099", salary: "", hours: 40 })),
+    };
+    setRevenuesState(fresh.revenues);
+    setExpensesState(fresh.expenses);
+    setEmployeesState(fresh.employees);
+    await saveToFirebase(fresh);
     setTab(0);
     setShowReset(false);
   };
 
+  // ── Cálculos ───────────────────────────────────────────────────────────────
   const totalRevenue = SERVICES.reduce((s, k) => s + (parseFloat(revenues[k]) || 0), 0);
   const totalExpenses = Object.values(expenses).reduce((s, v) => s + (parseFloat(v) || 0), 0);
   const employeeCosts = employees.map(e => {
@@ -94,8 +166,8 @@ export default function GlamPawsDashboard() {
 
   const setEmp = useCallback((id, field, value) => {
     setEmployees(prev => prev.map(e => e.id === id ? { ...e, [field]: value } : e));
-  }, []);
-  const addEmployee = () => setEmployees(prev => [...prev, EMPTY_EMPLOYEE()]);
+  }, [revenues, expenses]);
+  const addEmployee = () => setEmployees(prev => [...prev, { id: Date.now(), name: "", role: "", type: "1099", salary: "", hours: 40 }]);
   const removeEmployee = (id) => setEmployees(prev => prev.filter(e => e.id !== id));
 
   const inp = { width: "100%", padding: "9px 12px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 14, color: C.text, outline: "none", fontFamily: "inherit", background: C.pinkPale, boxSizing: "border-box" };
@@ -109,16 +181,24 @@ export default function GlamPawsDashboard() {
   const revBarData = SERVICES.map(k => ({ name: SERVICE_LABELS[k].split(" ")[1], Ingresos: parseFloat(revenues[k]) || 0 }));
   const payrollBar = employeeCosts.filter(e => e.base > 0).map(e => ({ name: e.name || "Sin nombre", Salario: e.base, Carga: e.carga }));
 
+  // ── Loading screen ─────────────────────────────────────────────────────────
+  if (!loaded) return (
+    <div style={{ background: C.pinkPale, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
+      <img src={LOGO} alt="Glam Paws" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", boxShadow: `0 4px 20px ${C.pink}` }} />
+      <p style={{ color: C.purple, fontFamily: "Georgia, serif", fontSize: 16, fontWeight: 700 }}>Cargando panel...</p>
+    </div>
+  );
+
   return (
     <div style={{ fontFamily: "'Georgia', serif", background: `linear-gradient(135deg, ${C.pinkPale} 0%, ${C.purplePale} 100%)`, minHeight: "100vh", paddingBottom: 60 }}>
 
-      {/* RESET CONFIRM MODAL */}
+      {/* RESET MODAL */}
       {showReset && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: C.white, borderRadius: 20, padding: "32px 28px", maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(91,45,142,0.25)" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔄</div>
             <h3 style={{ color: C.purple, margin: "0 0 8px", fontSize: 18 }}>¿Resetear el panel?</h3>
-            <p style={{ color: C.textMid, fontSize: 14, margin: "0 0 24px" }}>Se borrarán todos los datos ingresados. Esta acción no se puede deshacer.</p>
+            <p style={{ color: C.textMid, fontSize: 14, margin: "0 0 24px" }}>Se borrarán todos los datos en todos los dispositivos.</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
               <button onClick={() => setShowReset(false)} style={{ padding: "10px 24px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.textMid, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
               <button onClick={handleReset} style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: C.danger, color: C.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Sí, resetear</button>
@@ -137,7 +217,10 @@ export default function GlamPawsDashboard() {
           <p style={{ color: C.pinkLight, fontSize: 12, margin: "2px 0 0", fontStyle: "italic" }}>Panel Financiero · Pet Lovers Sitting</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
-          <span style={{ display: "inline-block", padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: netProfit >= 0 ? "#dcfce7" : "#fee2e2", color: C.purple }}>{statusLabel}</span>
+          <span style={{ fontSize: 11, color: syncing ? C.pinkLight : "#90EE90", fontFamily: "Georgia, serif" }}>
+            {syncing ? "💾 Guardando..." : "☁️ Sincronizado"}
+          </span>
+          <span style={{ display: "inline-block", padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: "#dcfce7", color: C.purple }}>{statusLabel}</span>
           <button onClick={() => setShowReset(true)} style={{ background: "rgba(255,255,255,0.25)", color: C.danger, border: "none", borderRadius: 10, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>🔄 Reset</button>
         </div>
       </div>
@@ -145,10 +228,10 @@ export default function GlamPawsDashboard() {
       {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, padding: "16px 14px 0" }}>
         {[
-          { label: "Ingresos",    value: currency(totalRevenue),  sub: "este mes",         color: C.purple },
-          { label: "Gastos",      value: currency(totalCost),     sub: "nómina + fijos",   color: C.danger },
-          { label: "Utilidad",    value: currency(netProfit),     sub: pct(margin) + " margen", color: statusColor },
-          { label: "Equilibrio",  value: currency(totalCost),     sub: "mínimo necesario", color: C.warn },
+          { label: "Ingresos",   value: currency(totalRevenue),  sub: "este mes",          color: C.purple },
+          { label: "Gastos",     value: currency(totalCost),     sub: "nómina + fijos",    color: C.danger },
+          { label: "Utilidad",   value: currency(netProfit),     sub: pct(margin) + " margen", color: statusColor },
+          { label: "Equilibrio", value: currency(totalCost),     sub: "mínimo necesario",  color: C.warn },
         ].map((k, i) => (
           <div key={i} style={{ background: C.white, borderRadius: 14, padding: "14px 16px", boxShadow: "0 2px 10px rgba(91,45,142,0.08)", border: `1.5px solid ${C.border}` }}>
             <div style={{ color: C.textLight, fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>{k.label}</div>
@@ -168,7 +251,6 @@ export default function GlamPawsDashboard() {
       {/* PANEL */}
       <div style={{ background: C.white, margin: "0 14px", borderRadius: "0 0 18px 18px", padding: "20px 16px", boxShadow: "0 4px 20px rgba(91,45,142,0.08)" }}>
 
-        {/* TAB: INGRESOS */}
         {tab === 0 && (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24 }}>
@@ -177,7 +259,7 @@ export default function GlamPawsDashboard() {
                 {SERVICES.map(k => (
                   <div key={k} style={{ marginBottom: 12 }}>
                     <label style={lbl}>{SERVICE_LABELS[k]}</label>
-                    <input style={inp} type="number" placeholder="$0.00" value={revenues[k]} onChange={e => setRevenues(r => ({ ...r, [k]: e.target.value }))} />
+                    <input style={inp} type="number" placeholder="/bin/sh.00" value={revenues[k]} onChange={e => setRevenues(r => ({ ...r, [k]: e.target.value }))} />
                   </div>
                 ))}
                 <div style={{ background: C.purplePale, borderRadius: 12, padding: "14px 16px", marginTop: 8 }}>
@@ -190,7 +272,7 @@ export default function GlamPawsDashboard() {
                 {Object.keys(expenses).map(k => (
                   <div key={k} style={{ marginBottom: 12 }}>
                     <label style={lbl}>{k.charAt(0).toUpperCase() + k.slice(1)}</label>
-                    <input style={inp} type="number" placeholder="$0.00" value={expenses[k]} onChange={e => setExpenses(ex => ({ ...ex, [k]: e.target.value }))} />
+                    <input style={inp} type="number" placeholder="/bin/sh.00" value={expenses[k]} onChange={e => setExpenses(ex => ({ ...ex, [k]: e.target.value }))} />
                   </div>
                 ))}
                 <div style={{ background: `${C.pink}33`, borderRadius: 12, padding: "14px 16px", marginTop: 8 }}>
@@ -216,7 +298,6 @@ export default function GlamPawsDashboard() {
           </div>
         )}
 
-        {/* TAB: NÓMINA */}
         {tab === 1 && (
           <div>
             <div style={secTitle}>👥 Empleados y Contratistas</div>
@@ -236,7 +317,7 @@ export default function GlamPawsDashboard() {
                         <option value="w2">W-2 Empleado</option>
                       </select>
                     </div>
-                    <div><label style={lbl}>Salario/mes</label><input style={inp} type="number" placeholder="$0.00" value={emp.salary} onChange={e => setEmp(emp.id, "salary", e.target.value)} /></div>
+                    <div><label style={lbl}>Salario/mes</label><input style={inp} type="number" placeholder="/bin/sh.00" value={emp.salary} onChange={e => setEmp(emp.id, "salary", e.target.value)} /></div>
                     <div><label style={lbl}>Hrs/semana</label><input style={inp} type="number" placeholder="40" value={emp.hours} onChange={e => setEmp(emp.id, "hours", e.target.value)} /></div>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -279,18 +360,17 @@ export default function GlamPawsDashboard() {
           </div>
         )}
 
-        {/* TAB: ANÁLISIS */}
         {tab === 2 && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
             <div style={{ background: C.white, border: `2px solid ${C.purple}`, borderRadius: 16, padding: "18px 20px" }}>
               <div style={secTitle}>🏥 Estado del Negocio</div>
               {[
-                { label: "Ingresos totales",     value: currency(totalRevenue),  color: C.success },
-                { label: "Gastos fijos",          value: currency(totalExpenses), color: C.danger },
-                { label: "Nómina total",          value: currency(totalPayroll),  color: C.warn },
-                { label: "Costo operativo",       value: currency(totalCost),     color: C.danger },
-                { label: "Utilidad neta",         value: currency(netProfit),     color: statusColor },
-                { label: "Margen operativo",      value: pct(margin),             color: statusColor },
+                { label: "Ingresos totales",    value: currency(totalRevenue),  color: C.success },
+                { label: "Gastos fijos",         value: currency(totalExpenses), color: C.danger },
+                { label: "Nómina total",         value: currency(totalPayroll),  color: C.warn },
+                { label: "Costo operativo",      value: currency(totalCost),     color: C.danger },
+                { label: "Utilidad neta",        value: currency(netProfit),     color: statusColor },
+                { label: "Margen operativo",     value: pct(margin),             color: statusColor },
               ].map((row, i) => (
                 <div key={i} style={metricRow}>
                   <span style={{ color: C.textMid, fontSize: 13 }}>{row.label}</span>
@@ -332,7 +412,6 @@ export default function GlamPawsDashboard() {
           </div>
         )}
 
-        {/* TAB: PROYECCIÓN */}
         {tab === 3 && (
           <div>
             <div style={secTitle}>📈 Proyección de Ingresos a 12 Meses</div>
